@@ -1,3 +1,3 @@
-module github.com/xjcloudy/tencent-im-restapi-go
+module github.com/Callwoola/tencent-im.go
 
-go 1.12
+go 1.15
