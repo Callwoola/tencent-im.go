@@ -14,6 +14,7 @@ type TimApp struct {
 	Identifiner string
 	Sig         string
 	Debug       bool
+	ProxyUrl    string
 }
 type CommonResp struct {
 	ActionStatus string
@@ -49,8 +50,14 @@ func (api *TimApp) httpReq(service, cmd string, params []byte) ([]byte, error) {
 	param.Add("sdkappid", api.AppID)
 	param.Add("contenttype", "json")
 
-	url := fmt.Sprintf("%s/%s/%s/%s?%s", timAPIHost, version, service, cmd, param.Encode())
-	resp, err := http.Post(url, "text/plain", bytes.NewReader(params))
+	reqUrl := fmt.Sprintf("%s/%s/%s/%s?%s", timAPIHost, version, service, cmd, param.Encode())
+	tr := &http.Transport{}
+	if len(api.ProxyUrl) > 0 {
+		r, _ := url.Parse(api.ProxyUrl)
+		tr.Proxy = http.ProxyURL(r)
+	}
+	client := &http.Client{Transport:tr}
+	resp, err := client.Post(reqUrl, "text/plain", bytes.NewReader(params))
 	if err != nil {
 		return nil, err
 	}
