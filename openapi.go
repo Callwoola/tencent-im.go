@@ -67,6 +67,32 @@ func (api *TimApp) httpReq(service, cmd string, params []byte) ([]byte, error) {
 	}
 	return responseBody, nil
 }
+
+func (api *TimApp) HttpReq(service, cmd string, params []byte) ([]byte, error) {
+	param := make(url.Values)
+	param.Add("usersig", api.Sig)
+	param.Add("identifier", api.Identifiner)
+	param.Add("sdkappid", api.AppID)
+	param.Add("contenttype", "json")
+
+	reqUrl := fmt.Sprintf("%s/%s/%s/%s?%s", timAPIHost, version, service, cmd, param.Encode())
+	tr := &http.Transport{}
+	if len(api.ProxyUrl) > 0 {
+		r, _ := url.Parse(api.ProxyUrl)
+		tr.Proxy = http.ProxyURL(r)
+	}
+	client := &http.Client{Transport:tr}
+	resp, err := client.Post(reqUrl, "text/plain", bytes.NewReader(params))
+	if err != nil {
+		return nil, err
+	}
+	responseBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	return responseBody, nil
+}
+
 func (api *TimApp) do(service, cmd string, params interface{}, resp interface{}) error {
 	jsonData, encodeError := json.Marshal(params)
 	if encodeError != nil {
